@@ -261,6 +261,7 @@ b {
 
   /* Style form inputs */
   input[type="text"],
+  input[type="password"],
   input[type="email"],
   input[type="submit"] {
     width: calc(100% - 12px); /* Adjust width and spacing */
