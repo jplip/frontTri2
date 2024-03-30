@@ -50,6 +50,7 @@ search_exclude: false
     }
 </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <body>
 <h1>Meal Health Analyzer</h1>
 
