@@ -9,45 +9,6 @@ permalink: /water/
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0; /* Original background color */
-            overflow: hidden; /* Prevent scrolling */
-        }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Allow clicks to fall through to elements behind */
-            z-index: -1; /* Place behind other content */
-        }
-        
-        .emoji-pattern {
-            background-image: url('{{site.baseurl}}/images/water drop.png'); /* Path to your emoji image */
-            opacity: 0.3; /* Adjust opacity to your liking */
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-repeat: repeat; /* Repeat the emoji pattern */
-            background-size: 50px 50px; /* Adjust size of the emojis */
-        }
-
-        #selectedAscii {
-            /* Just making sure this element doesn't cover the emojis */
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 9999; /* Make sure it's above the emoji pattern */
-        }
-
-        /* Your existing styles */
         #progress-bar-container {
             width: 300px;
             height: 30px;
@@ -75,8 +36,6 @@ permalink: /water/
     </style>
 </head>
 <body>
-    <div id="selectedAscii"></div>
-    <script src="https://jplip.github.io/frontTri2/assets/js/exercise.js" defer></script>
     <div class="purple-form">
         <label for="cupInput">Enter number of cups: </label>
         <input type="number" id="cupInput" min="0">
@@ -87,8 +46,6 @@ permalink: /water/
         <div id="progress-text">0 cups</div>
     </div>
     <div id="cup-info"></div>
-    <div class="overlay">
-        <div class="emoji-pattern"></div>
     </div>
     <script>
         let totalCups = 0;

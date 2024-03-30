@@ -5,8 +5,227 @@ permalink: "/food/"
 search_exclude: false
 ---
 ![Alt text](images/Food Tracker Icon.png)
-
+<!DOCTYPE html>
 <html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Health Analyzer</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    label {
+        display: inline-block;
+        width: 100px;
+    }
+    input, select {
+        width: 150px;
+    }
+    button {
+        padding: 10px 20px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+    #pieCharts {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    #chartContainer {
+        width: 45%;
+    }
+    #result {
+        margin-top: 20px;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+</style>
+</head>
+<body>
+<h1>Meal Health Analyzer</h1>
+
+<form id="foodForm">
+    <div>
+        <label for="dairy">Dairy:</label>
+        <input type="number" id="dairy" min="0" step="0.01">
+        <select id="dairyUnit">
+            <option value="grams">grams</option>
+            <option value="cups" selected>cups</option>
+            <option value="pounds">pounds</option>
+        </select>
+    </div>
+    <div>
+        <label for="grain">Grain:</label>
+        <input type="number" id="grain" min="0" step="0.01">
+        <select id="grainUnit">
+            <option value="grams">grams</option>
+            <option value="cups" selected>cups</option>
+            <option value="pounds">pounds</option>
+        </select>
+    </div>
+    <div>
+        <label for="vegetables">Vegetables:</label>
+        <input type="number" id="vegetables" min="0" step="0.01">
+        <select id="vegetablesUnit">
+            <option value="grams">grams</option>
+            <option value="cups" selected>cups</option>
+            <option value="pounds">pounds</option>
+        </select>
+    </div>
+    <div>
+        <label for="fruits">Fruits:</label>
+        <input type="number" id="fruits" min="0" step="0.01">
+        <select id="fruitsUnit">
+            <option value="grams">grams</option>
+            <option value="cups" selected>cups</option>
+            <option value="pounds">pounds</option>
+        </select>
+    </div>
+    <div>
+        <label for="protein">Protein:</label>
+        <input type="number" id="protein" min="0" step="0.01">
+        <select id="proteinUnit">
+            <option value="grams">grams</option>
+            <option value="cups" selected>cups</option>
+            <option value="pounds">pounds</option>
+        </select>
+    </div>
+    <button type="button" onclick="plotPieCharts()">Plot Pie Charts</button>
+</form>
+
+<div id="result"></div>
+
+<div id="history">
+    <button type="button" onclick="toggleHistory()">Toggle History</button>
+    <table id="historyTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Healthy Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- History data will be populated here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const IDEAL_RATIOS = {
+        'Dairy': 0.15,
+        'Grain': 0.30,
+        'Vegetables': 0.25,
+        'Fruits': 0.20,
+        'Protein': 0.10
+    };
+
+    function plotPieCharts() {
+        const values = {};
+        const units = {
+            'Dairy': document.getElementById('dairyUnit').value,
+            'Grain': document.getElementById('grainUnit').value,
+            'Vegetables': document.getElementById('vegetablesUnit').value,
+            'Fruits': document.getElementById('fruitsUnit').value,
+            'Protein': document.getElementById('proteinUnit').value
+        };
+
+        for (let group in IDEAL_RATIOS) {
+            const value = parseFloat(document.getElementById(group.toLowerCase()).value);
+            values[group] = convertToCups(value, units[group]);
+        }
+
+        const totalCups = Object.values(values).reduce((acc, val) => acc + val, 0);
+        const ratios = {};
+        for (let group in values) {
+            ratios[group] = values[group] / totalCups;
+        }
+
+        // Plot user's pie chart
+        const userRatios = Object.values(ratios);
+        const userLabels = Object.keys(ratios);
+        plotChart('userChart', userRatios, userLabels, 'Your Ratios');
+
+        // Plot USDA's ideal pie chart
+        const idealRatios = Object.values(IDEAL_RATIOS);
+        const idealLabels = Object.keys(IDEAL_RATIOS);
+        plotChart('idealChart', idealRatios, idealLabels, 'USDA Ideal Ratios');
+
+        // Calculate healthy score and suggestions
+        const { score, suggestion } = calculateHealthScore(ratios);
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `<p>Healthy Score: ${score}</p><p>Suggestions:<br>${suggestion}</p>`;
+    }
+
+    function convertToCups(value, unit) {
+        if (unit === 'grams') {
+            return value * 0.00422675;
+        } else if (unit === 'pounds') {
+            return value * 1.917;
+        } else {
+            return value;
+        }
+    }
+
+    function calculateHealthScore(ratios) {
+        let score = 0;
+        let suggestion = '';
+        for (let group in ratios) {
+            const ratio = ratios[group];
+            const idealRatio = IDEAL_RATIOS[group];
+            score += Math.abs(ratio - idealRatio);
+            if (ratio < idealRatio) {
+                suggestion += `Add more ${group}<br>`;
+            } else if (ratio > idealRatio) {
+                suggestion += `Reduce ${group}<br>`;
+            }
+        }
+        score = (10 - score * 100).toFixed(2);
+        return { score, suggestion };
+    }
+
+    function plotChart(containerId, data, labels, title) {
+        const ctx = document.getElementById(containerId).getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data,
+                    backgroundColor: ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#c2c2f0']
+                }],
+                labels
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: title
+                }
+            }
+        });
+    }
+
+    function toggleHistory() {
+        const historyTable = document.getElementById('historyTable');
+        historyTable.classList.toggle('hidden');
+    }
+</script>
+
+<canvas id="userChart" width="300" height="300"></canvas>
+<canvas id="idealChart" width="300" height="300"></canvas>
+
+</body>
+</html>
+
+
+<!-- <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -186,5 +405,5 @@ function generateCharts() {
 </script>
 
 </body>
-</html>
+</html> -->
 
