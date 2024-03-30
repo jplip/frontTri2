@@ -48,9 +48,11 @@ search_exclude: false
         padding: 8px;
         text-align: left;
     }
+    .hidden {
+        display: none;
+    }
 </style>
 </head>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <body>
 <h1>Meal Health Analyzer</h1>
 
@@ -105,6 +107,11 @@ search_exclude: false
 
 <div id="result"></div>
 
+<p>Your Healthy Meal</p>
+<canvas id="userChart" width="300" height="300"></canvas>
+<p>USDA Healthy Meal</p>
+<canvas id="idealChart" width="300" height="300"></canvas>
+
 <div id="history">
     <button type="button" onclick="toggleHistory()">Toggle History</button>
     <table id="historyTable">
@@ -120,6 +127,7 @@ search_exclude: false
     </table>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const IDEAL_RATIOS = {
         'Dairy': 0.15,
@@ -128,6 +136,63 @@ search_exclude: false
         'Fruits': 0.20,
         'Protein': 0.10
     };
+
+    // Function to add an entry to the history table and local storage
+    function addToHistory(date, score) {
+        // Create a history object
+        const historyData = {
+            date: date,
+            score: score
+        };
+
+        // Retrieve existing history data from local storage
+        let existingHistory = localStorage.getItem('mealHealthHistory');
+
+        // If no existing history data, create an empty array
+        if (!existingHistory) {
+            existingHistory = [];
+        } else {
+            // Parse existing history data from JSON
+            existingHistory = JSON.parse(existingHistory);
+        }
+
+        // Add the new history object to the existing history array
+        existingHistory.push(historyData);
+
+        // Store the updated history data back into local storage
+        localStorage.setItem('mealHealthHistory', JSON.stringify(existingHistory));
+
+        // Update the history table in the HTML
+        updateHistoryTable(existingHistory);
+    }
+
+    // Function to update the history table in the HTML
+    function updateHistoryTable(historyData) {
+        const historyTable = document.getElementById('historyTable').getElementsByTagName('tbody')[0];
+        
+        // Clear existing table rows
+        historyTable.innerHTML = '';
+
+        // Loop through history data and populate the table
+        historyData.forEach(entry => {
+            const newRow = historyTable.insertRow();
+            const dateCell = newRow.insertCell(0);
+            const scoreCell = newRow.insertCell(1);
+            dateCell.innerHTML = entry.date;
+            scoreCell.innerHTML = entry.score;
+        });
+    }
+
+    // Function to load history data from local storage when the page loads
+    function loadHistoryFromLocalStorage() {
+        const existingHistory = localStorage.getItem('mealHealthHistory');
+        if (existingHistory) {
+            updateHistoryTable(JSON.parse(existingHistory));
+        }
+    }
+
+    // Call the function to load history data from local storage when the page loads
+    loadHistoryFromLocalStorage();
 
     function plotPieCharts() {
         const values = {};
@@ -164,6 +229,9 @@ search_exclude: false
         const { score, suggestion } = calculateHealthScore(ratios);
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `<p>Healthy Score: ${score}</p><p>Suggestions:<br>${suggestion}</p>`;
+        
+        // Add score to history table and local storage
+        addToHistory(new Date().toLocaleDateString(), score);
     }
 
     function convertToCups(value, unit) {
@@ -189,7 +257,7 @@ search_exclude: false
                 suggestion += `Reduce ${group}<br>`;
             }
         }
-        score = (10 - score * 100).toFixed(2);
+        score = ((1 - score) * 100).toFixed(2); // Convert to percentage
         return { score, suggestion };
     }
 
@@ -218,12 +286,9 @@ search_exclude: false
         historyTable.classList.toggle('hidden');
     }
 </script>
-
-<canvas id="userChart" width="300" height="300"></canvas>
-<canvas id="idealChart" width="300" height="300"></canvas>
-
 </body>
 </html>
+
 
 
 <!-- <html lang="en">
