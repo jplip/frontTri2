@@ -107,10 +107,17 @@ search_exclude: false
 
 <div id="result"></div>
 
-<p>Your Healthy Meal</p>
-<canvas id="userChart" width="300" height="300"></canvas>
-<p>USDA Healthy Meal</p>
-<canvas id="idealChart" width="300" height="300"></canvas>
+<div style="display: flex;">
+    <div style="margin-right: 20px;"> <!-- Adjust margin as needed -->
+        <p>Your Healthy Meal</p>
+        <canvas id="userChart" width="250" height="250"></canvas>
+    </div>
+    <div>
+        <p>USDA Healthy Meal</p>
+        <canvas id="idealChart" width="250" height="250"></canvas>
+    </div>
+</div>
+
 
 <div id="history">
     <button type="button" onclick="toggleHistory()">Toggle History</button>
@@ -257,6 +264,7 @@ search_exclude: false
                 suggestion += `Reduce ${group}<br>`;
             }
         }
+        score = score/2.28
         score = ((1 - score) * 100).toFixed(2); // Convert to percentage
         return { score, suggestion };
     }
