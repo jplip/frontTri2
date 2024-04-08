@@ -5,7 +5,6 @@ permalink: "/food/"
 search_exclude: false
 ---
 ![Alt text](images/Food Tracker Icon.png)
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -128,7 +127,6 @@ search_exclude: false
           </tbody>
       </table>
   </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -268,5 +266,3 @@ search_exclude: false
         historyTable.classList.toggle('hidden');
     }
 </script>
-</body>
-</html>
