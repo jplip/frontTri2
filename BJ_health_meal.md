@@ -238,7 +238,7 @@ search_exclude: false
                 suggestion += `Reduce ${group}<br>`;
             }
         }
-        score = score/2.28
+        score = score/3.5
         score = ((1 - score) * 100).toFixed(2); // Convert to percentage
         return { score, suggestion };
     }
