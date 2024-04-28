@@ -183,6 +183,7 @@ search_exclude: false
     }
     // Call the function to load history data from local storage when the page loads
     loadHistoryFromLocalStorage();
+    // Piecharts
     function plotPieCharts() {
         const values = {};
         const units = {
@@ -192,26 +193,33 @@ search_exclude: false
             'Fruits': document.getElementById('fruitsUnit').value,
             'Protein': document.getElementById('proteinUnit').value
         };
+        // IDEAL RATIOS for USDA
         for (let group in IDEAL_RATIOS) {
             const value = parseFloat(document.getElementById(group.toLowerCase()).value);
             values[group] = convertToCups(value, units[group]);
         }
-        const totalCups = Object.values(values).reduce((acc, val) => acc + val, 0);
+        // ratios for user
+        const totalCups = Object.values(values).reduce((acc, val) => acc + val, 0); //total cups
         const ratios = {};
         for (let group in values) {
             ratios[group] = values[group] / totalCups;
         }
+        //User Ratio + Labels match + plot
         const userRatios = Object.values(ratios);
         const userLabels = Object.keys(ratios);
         plotChart('userChart', userRatios, userLabels, 'Your Ratios');
+        // USDA Ratio + Labels + Plot
         const idealRatios = Object.values(IDEAL_RATIOS);
         const idealLabels = Object.keys(IDEAL_RATIOS);
         plotChart('idealChart', idealRatios, idealLabels, 'USDA Ideal Ratios');
+        //Score Calculated from calculateHealthScore function
         const { score, suggestion } = calculateHealthScore(ratios);
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `<p>Healthy Score: ${score}</p><p>Suggestions:<br>${suggestion}</p>`;        
+        // local storage updated
         addToHistory(new Date().toLocaleDateString(), score);
     }
+    //Convert to Cups Function
     function convertToCups(value, unit) {
         if (unit === 'grams') {
             return value * 0.00422675;
@@ -221,23 +229,26 @@ search_exclude: false
             return value;
         }
     }
+    //Calculate Health Score Function
     function calculateHealthScore(ratios) {
         let score = 0;
         let suggestion = '';
         for (let group in ratios) {
             const ratio = ratios[group];
             const idealRatio = IDEAL_RATIOS[group];
-            score += Math.abs(ratio - idealRatio);
+            score += Math.abs(ratio - idealRatio); //determine differences
+            //give suggestions
             if (ratio < idealRatio) {
                 suggestion += `Add more ${group}<br>`;
             } else if (ratio > idealRatio) {
                 suggestion += `Reduce ${group}<br>`;
             }
         }
-        score = score/3.5
-        score = ((1 - score) * 100).toFixed(2); 
+        score = score/3.5 //score factor
+        score = ((1 - score) * 100).toFixed(2); // final score calculation
         return { score, suggestion };
     }
+    //Piechart generation
     function plotChart(containerId, data, labels, title) {
         const ctx = document.getElementById(containerId).getContext('2d');
         new Chart(ctx, {
@@ -257,14 +268,14 @@ search_exclude: false
             }
         });
     }
+    //History button
     function toggleHistory() {
         const historyTable = document.getElementById('historyTable');
         historyTable.classList.toggle('hidden');
     }
 </script>
-
 <div class="purple-form">
-    <h1>Suggested grams of Fruits and Vegetables</h1>
+    <h1>Suggested grams of Fruits and Vegetables</h1> 
     <form id="prod-form">
         <label for="steps">Steps (in hundreds):</label>
         <input type="number" id="steps" placeholder="Enter number of steps" required>
@@ -277,28 +288,19 @@ search_exclude: false
     <div id="message"></div>
     <div id="fitness-message"></div>
 </div>
-
 <script>
+//Code for ML
     function calculateProduce() {
         var steps = document.getElementById('steps').value;
         var stress = document.getElementById('stress').value;
         var meditation = document.getElementById('meditation').value;
-
         // Prepare the data to send to the backend API
         var data = {
             "Steps": parseInt(steps),
             "Stress": parseInt(stress),
             "Meditation": parseInt(meditation)
         };
-
-        // Make a POST request to the backend API endpoint
-        // fetch('/predict_produce', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(data)
-        // })
+        //Fetch statement
         fetch('http://localhost:5000/api/fitness/predict', {
             method: 'POST',
             headers: {
@@ -306,7 +308,6 @@ search_exclude: false
             },
             body: JSON.stringify(data)
         })
-
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to calculate produce');
@@ -314,31 +315,11 @@ search_exclude: false
             return response.text(); // Read response as text
         })
         .then(data => {
-            // var produce = JSON.parse(data); // Parse text data into JSON object
-
-            // // Display the predicted produce from the backend response
-            // // Display the predicted produce from the backend response
-            // document.getElementById('message').innerText = "Predicted Produce: " + JSON.stringify(produce);
                 var responseData = JSON.parse(data); // Parse text data into JSON object
-
     // Extract the value associated with the 'predicted_produce' key
                 var predictedProduce = responseData.predicted_produce;
-
     // Display the predicted produce value
                 document.getElementById('message').innerText = "Suggested Grams Per Meal: " + predictedProduce;
-
-
-            // // Display a random motivational message
-            // var messages = [
-            //     "Keep up the great work!",
-            //     "You're doing amazing!",
-            //     "You're one step closer to your fitness goals!",
-            //     "Every step counts towards a healthier you!",
-            //     "Stay motivated and keep moving forward!",
-            //     "Your efforts will pay off in the long run!"
-            // ];
-            // var randomMessage = messages[Math.floor(Math.random() * messages.length)];
-            // document.getElementById('fitness-message').innerText = randomMessage;
         })
         .catch(error => {
             console.error('Error:', error.message);
