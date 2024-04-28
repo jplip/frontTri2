@@ -15,7 +15,7 @@ search_exclude: false
        display: none;
     }
     input, select {
-        width: 150px;
+        width: 190px;
     }
     button {
       padding: 10px 20px;
@@ -201,19 +201,15 @@ search_exclude: false
         for (let group in values) {
             ratios[group] = values[group] / totalCups;
         }
-        // Plot user's pie chart
         const userRatios = Object.values(ratios);
         const userLabels = Object.keys(ratios);
         plotChart('userChart', userRatios, userLabels, 'Your Ratios');
-        // Plot USDA's ideal pie chart
         const idealRatios = Object.values(IDEAL_RATIOS);
         const idealLabels = Object.keys(IDEAL_RATIOS);
         plotChart('idealChart', idealRatios, idealLabels, 'USDA Ideal Ratios');
-        // Calculate healthy score and suggestions
         const { score, suggestion } = calculateHealthScore(ratios);
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `<p>Healthy Score: ${score}</p><p>Suggestions:<br>${suggestion}</p>`;        
-        // Add score to history table and local storage
         addToHistory(new Date().toLocaleDateString(), score);
     }
     function convertToCups(value, unit) {
@@ -239,7 +235,7 @@ search_exclude: false
             }
         }
         score = score/3.5
-        score = ((1 - score) * 100).toFixed(2); // Convert to percentage
+        score = ((1 - score) * 100).toFixed(2); 
         return { score, suggestion };
     }
     function plotChart(containerId, data, labels, title) {
@@ -264,5 +260,90 @@ search_exclude: false
     function toggleHistory() {
         const historyTable = document.getElementById('historyTable');
         historyTable.classList.toggle('hidden');
+    }
+</script>
+
+<div class="purple-form">
+    <h1>Suggested grams of Fruits and Vegetables</h1>
+    <form id="prod-form">
+        <label for="steps">Steps (in hundreds):</label>
+        <input type="number" id="steps" placeholder="Enter number of steps" required>
+        <label for="stress">Stress Level:</label>
+        <input type="number" id="stress" placeholder="Enter stress level (1-10)" required>
+        <label for="meditation">Meditation Level:</label>
+        <input type="number" id="meditation" placeholder="Enter meditation level (1-10)" required>
+        <button type="button" id="calculate-prod" onclick="calculateProduce()">Calculate Produce</button>
+    </form>
+    <div id="message"></div>
+    <div id="fitness-message"></div>
+</div>
+
+<script>
+    function calculateProduce() {
+        var steps = document.getElementById('steps').value;
+        var stress = document.getElementById('stress').value;
+        var meditation = document.getElementById('meditation').value;
+
+        // Prepare the data to send to the backend API
+        var data = {
+            "Steps": parseInt(steps),
+            "Stress": parseInt(stress),
+            "Meditation": parseInt(meditation)
+        };
+
+        // Make a POST request to the backend API endpoint
+        // fetch('/predict_produce', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify(data)
+        // })
+        fetch('http://localhost:5000/api/fitness/predict', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to calculate produce');
+            }
+            return response.text(); // Read response as text
+        })
+        .then(data => {
+            // var produce = JSON.parse(data); // Parse text data into JSON object
+
+            // // Display the predicted produce from the backend response
+            // // Display the predicted produce from the backend response
+            // document.getElementById('message').innerText = "Predicted Produce: " + JSON.stringify(produce);
+                var responseData = JSON.parse(data); // Parse text data into JSON object
+
+    // Extract the value associated with the 'predicted_produce' key
+                var predictedProduce = responseData.predicted_produce;
+
+    // Display the predicted produce value
+                document.getElementById('message').innerText = "Suggested Grams Per Meal: " + predictedProduce;
+
+
+            // // Display a random motivational message
+            // var messages = [
+            //     "Keep up the great work!",
+            //     "You're doing amazing!",
+            //     "You're one step closer to your fitness goals!",
+            //     "Every step counts towards a healthier you!",
+            //     "Stay motivated and keep moving forward!",
+            //     "Your efforts will pay off in the long run!"
+            // ];
+            // var randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            // document.getElementById('fitness-message').innerText = randomMessage;
+        })
+        .catch(error => {
+            console.error('Error:', error.message);
+            // Display an error message if something goes wrong
+            document.getElementById('message').innerText = "Error: " + error.message;
+        });
     }
 </script>
